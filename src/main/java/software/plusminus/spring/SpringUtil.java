@@ -9,14 +9,37 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.ResolvableType;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 
 @Component
 public class SpringUtil implements ApplicationContextAware {
 
     private static ApplicationContext applicationContext;
 
-    public <T, B> Class<T> getGenericType(B bean, Class<? super B> beanType) {
+    public <T, B extends T> Map<Class<?>, List<B>> groupBeansByGenericType(
+            List<B> beans, Class<T> type, Function<B, RuntimeException> exceptionFunction) {
+        return beans.stream()
+                .collect(Collectors.groupingBy(bean -> {
+                    Class<?> genericType = getGenericType(bean, type);
+                    if (genericType == null) {
+                        throw exceptionFunction.apply(bean);
+                    }
+                    return genericType;
+                }));
+    }
+
+    @Nullable
+    public <T, B extends T> Class<?> getGenericType(B bean, Class<T> type) {
+        ResolvableType resolvableType = ResolvableType.forClass(bean.getClass())
+                .as(type);
+        return resolvableType.getGeneric(0).resolve();
+    }
+
+    public <T, B> Class<T> findGenericType(B bean, Class<? super B> beanType) {
         ConfigurableListableBeanFactory beanFactory =
                 (ConfigurableListableBeanFactory) applicationContext.getAutowireCapableBeanFactory();
 
