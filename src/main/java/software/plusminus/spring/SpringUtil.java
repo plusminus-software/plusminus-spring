@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
@@ -33,6 +34,18 @@ public class SpringUtil {
     public static <T, B extends T> Map<Class<?>, B> beansToMapByGenericType(List<B> beans, Class<T> type) {
         return beans.stream()
                 .collect(Collectors.toMap(bean -> resolveGenericType(bean, type), Function.identity()));
+    }
+
+    public static <T, B extends T> Map<Class<?>, B> beansToConcurrentMapByGenericType(List<B> beans, Class<T> type) {
+        return beans.stream()
+                .collect(Collectors.toMap(
+                        bean -> resolveGenericType(bean, type),
+                        Function.identity(),
+                        (a, b) -> {
+                            throw new IllegalStateException(String.format(
+                                    "Duplicated key for values: %s and %s", a, b));
+                        },
+                        ConcurrentHashMap::new));
     }
 
     @Nullable
