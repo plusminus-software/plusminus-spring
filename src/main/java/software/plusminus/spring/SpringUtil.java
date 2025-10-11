@@ -1,11 +1,9 @@
 package software.plusminus.spring;
 
-
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.ResolvableType;
 import org.springframework.stereotype.Component;
 
@@ -15,10 +13,17 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
+@SuppressWarnings("HideUtilityClassConstructor")
 @Component
-public class SpringUtil implements ApplicationContextAware {
+public class SpringUtil {
 
     private static ApplicationContext applicationContext;
+
+    @SuppressWarnings({"java:S3010", "java:S1118"})
+    @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
+    public SpringUtil(ApplicationContext applicationContext) {
+        SpringUtil.applicationContext = applicationContext;
+    }
 
     public static <T, B extends T> Map<Class<?>, List<B>> groupBeansByGenericType(List<B> beans, Class<T> type) {
         return beans.stream()
@@ -43,6 +48,23 @@ public class SpringUtil implements ApplicationContextAware {
             return (Class<T>) genericType;
         }
 
+        genericType = SpringUtil.findBeanGenericType(bean, beanType);
+        if (genericType == null) {
+            throw new IllegalStateException("Cannot resolve generic type for '" + beanType + "' bean: ");
+        }
+
+        return (Class<T>) genericType;
+    }
+
+    public static boolean isRunningInSpring() {
+        return SpringUtil.applicationContext != null;
+    }
+
+    private static <B> Class<?> findBeanGenericType(B bean, Class<? super B> beanType) {
+        if (!SpringUtil.isRunningInSpring()) {
+            throw new IllegalStateException("Cannot resolve generic type for '" + beanType + "' object: ");
+        }
+
         ConfigurableListableBeanFactory beanFactory =
                 (ConfigurableListableBeanFactory) applicationContext.getAutowireCapableBeanFactory();
 
@@ -62,23 +84,6 @@ public class SpringUtil implements ApplicationContextAware {
 
         BeanDefinition bd = beanFactory.getBeanDefinition(beanName);
         ResolvableType rt = bd.getResolvableType().as(beanType);
-        genericType = rt.getGeneric(0).resolve();
-
-        if (genericType == null) {
-            throw new IllegalStateException("Cannot resolve generic type for '" + beanType + "' bean: ");
-        }
-
-        return (Class<T>) genericType;
-    }
-
-    @SuppressWarnings("java:S2696")
-    @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) {
-        SpringUtil.applicationContext = applicationContext;
-    }
-
-    public static boolean isRunningInSpring() {
-        return SpringUtil.applicationContext != null;
+        return rt.getGeneric(0).resolve();
     }
 }
