@@ -20,26 +20,29 @@ public class SpringUtil implements ApplicationContextAware {
 
     private static ApplicationContext applicationContext;
 
-    public <T, B extends T> Map<Class<?>, List<B>> groupBeansByGenericType(
-            List<B> beans, Class<T> type, Function<B, RuntimeException> exceptionFunction) {
+    public static <T, B extends T> Map<Class<?>, List<B>> groupBeansByGenericType(List<B> beans, Class<T> type) {
         return beans.stream()
-                .collect(Collectors.groupingBy(bean -> {
-                    Class<?> genericType = getGenericType(bean, type);
-                    if (genericType == null) {
-                        throw exceptionFunction.apply(bean);
-                    }
-                    return genericType;
-                }));
+                .collect(Collectors.groupingBy(bean -> resolveGenericType(bean, type)));
+    }
+
+    public static <T, B extends T> Map<Class<?>, B> beansToMapByGenericType(List<B> beans, Class<T> type) {
+        return beans.stream()
+                .collect(Collectors.toMap(bean -> resolveGenericType(bean, type), Function.identity()));
     }
 
     @Nullable
-    public <T, B extends T> Class<?> getGenericType(B bean, Class<T> type) {
+    public static <T, B extends T> Class<?> getGenericType(B bean, Class<T> type) {
         ResolvableType resolvableType = ResolvableType.forClass(bean.getClass())
                 .as(type);
         return resolvableType.getGeneric(0).resolve();
     }
 
-    public <T, B> Class<T> findGenericType(B bean, Class<? super B> beanType) {
+    public static <T, B> Class<T> resolveGenericType(B bean, Class<? super B> beanType) {
+        Class<?> genericType = getGenericType(bean, beanType);
+        if (genericType != null) {
+            return (Class<T>) genericType;
+        }
+
         ConfigurableListableBeanFactory beanFactory =
                 (ConfigurableListableBeanFactory) applicationContext.getAutowireCapableBeanFactory();
 
@@ -59,7 +62,7 @@ public class SpringUtil implements ApplicationContextAware {
 
         BeanDefinition bd = beanFactory.getBeanDefinition(beanName);
         ResolvableType rt = bd.getResolvableType().as(beanType);
-        Class<?> genericType = rt.getGeneric(0).resolve();
+        genericType = rt.getGeneric(0).resolve();
 
         if (genericType == null) {
             throw new IllegalStateException("Cannot resolve generic type for '" + beanType + "' bean: ");
