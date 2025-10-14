@@ -26,6 +26,10 @@ public class SpringUtil {
         SpringUtil.applicationContext = applicationContext;
     }
 
+    public static ApplicationContext getApplicationContext() {
+        return applicationContext;
+    }
+
     public static <T, B extends T> Map<Class<?>, List<B>> groupBeansByGenericType(List<B> beans, Class<T> type) {
         return beans.stream()
                 .collect(Collectors.groupingBy(bean -> resolveGenericType(bean, type)));
