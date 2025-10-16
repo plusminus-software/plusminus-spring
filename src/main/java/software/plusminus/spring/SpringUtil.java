@@ -2,6 +2,7 @@ package software.plusminus.spring;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.ResolvableType;
@@ -16,7 +17,7 @@ import javax.annotation.Nullable;
 
 @SuppressWarnings("HideUtilityClassConstructor")
 @Component
-public class SpringUtil {
+public class SpringUtil implements BeanPostProcessor {
 
     private static ApplicationContext applicationContext;
 
