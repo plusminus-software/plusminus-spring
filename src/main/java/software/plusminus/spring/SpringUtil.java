@@ -100,7 +100,7 @@ public class SpringUtil implements BeanPostProcessor {
             throw new IllegalStateException("Cannot determine bean name for '" + beanType + "' bean: ");
         }
 
-        BeanDefinition bd = beanFactory.getBeanDefinition(beanName);
+        BeanDefinition bd = beanFactory.getMergedBeanDefinition(beanName);
         ResolvableType rt = bd.getResolvableType().as(beanType);
         return rt.getGeneric(0).resolve();
     }
