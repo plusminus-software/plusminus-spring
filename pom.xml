@@ -6,8 +6,8 @@
 
     <parent>
         <groupId>software.plusminus</groupId>
-        <artifactId>plusminus-parent-public</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <artifactId>plusminus-parent</artifactId>
+        <version>1.5</version>
         <relativePath/>
     </parent>
 
@@ -52,25 +52,5 @@
             <artifactId>spring-context</artifactId>
             <optional>true</optional>
         </dependency>
-        <!-- TEST -->
-        <dependency>
-            <groupId>software.plusminus</groupId>
-            <artifactId>plusminus-test</artifactId>
-            <version>1.0-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
-
-    <repositories>
-        <repository>
-            <id>sonatype-central-snapshots</id>
-            <url>https://central.sonatype.com/repository/maven-snapshots/</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
 </project>
